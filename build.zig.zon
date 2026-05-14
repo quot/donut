@@ -10,6 +10,10 @@
             .url = "git+https://github.com/floooh/dcimgui.git#551a51ce0238cfa8b505c2d2d3775bc9229acea5",
             .hash = "cimgui-0.1.0-44ClkVf0mABLcfYoHaPrpkqdFmPhX0wAgDDCIuaDobq1",
         },
+        .shdc = .{
+            .url = "git+https://github.com/floooh/sokol-tools-bin.git#1a9a4e54090fec42c5d13169b638f09f25474953",
+            .hash = "sokolshdc-0.1.0-r2KZDjCESgPWh_7sOPQXfzFSPLsAg1MqRfvwnLa4pbWC",
+        },
     },
     .minimum_zig_version = "0.15.2",
     .paths = .{""},
