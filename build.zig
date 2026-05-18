@@ -15,12 +15,11 @@ fn buildShaders(b: *Build) !*Build.Step {
         .output = b.fmt("{s}{s}.glsl.zig", .{ shaders_dir, "donut" }),
         .slang = .{
             .glsl430 = true,
-            .glsl410 = false,
-            .glsl310es = true,
-            .glsl300es = false,
+            .glsl310es = false, // Android
+            .glsl300es = true, // WebGL
             .metal_macos = true,
             .hlsl5 = true,
-            .wgsl = true,
+            .wgsl = true, // WebGPU
             .spirv_vk = true,
         },
         .reflection = true,
