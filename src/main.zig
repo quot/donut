@@ -1,8 +1,15 @@
+const use_docking = @import("build_options").docking;
+const ig = if (use_docking) @import("cimgui_docking") else @import("cimgui");
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 const sapp = sokol.app;
 const sglue = sokol.glue;
 const slog = sokol.log;
+const simgui = sokol.imgui;
+const sgimgui = sokol.gfximgui;
+const sappimgui = sokol.appimgui;
+
+// const ui = @import("ui/base.zig");
 
 const math = @import("utils/math.zig");
 const mesh = @import("mesh.zig");
@@ -19,15 +26,20 @@ var index_count: u32 = 0;
 // var model_rotation: @Vector(2, f32) = .{ 0.0, 0.0 };
 var model_rotation: f32 = 0.0;
 
-// TODO: These should be user configurable.
-const rotation_scale: f32 = 1.5;
-const clear_color: sg.Color = .{ .r = 0.94, .g = 0.94, .b = 0.94, .a = 1.0 };
-const fov: f32 = 60.0;
-
 // Camera State
 var eye_pos: math.Vec3 = math.Vec3.new(0.0, 1.5, 5.0);
 var eye_focus_pos: math.Vec3 = math.Vec3.zero();
 var eye_movement: math.Vec3 = math.Vec3.zero();
+
+// TODO: These should be user configurable.
+const rotation_scale: f32 = 1.5;
+var clear_color: sg.Color = .{ .r = 0.94, .g = 0.94, .b = 0.94, .a = 1.0 };
+const fov: f32 = 60.0;
+
+// TEST
+var show_first_window: bool = true;
+var show_second_window: bool = true;
+
 ////////////////////////////////////////////////////////////////////////
 
 // const VERTEX_HIT_RADIUS: f32 = 15.0; // in pixels
@@ -67,6 +79,17 @@ export fn init() void {
         .environment = sglue.environment(),
         .logger = .{ .func = slog.func },
     });
+
+    // the debug/tracing ui
+    sappimgui.setup();
+    sgimgui.setup(.{});
+    // initialize sokol-imgui
+    simgui.setup(.{
+        .logger = .{ .func = slog.func },
+    });
+    if (use_docking) {
+        ig.igGetIO().*.ConfigFlags |= ig.ImGuiConfigFlags_DockingEnable;
+    }
 
     const pyramid = mesh_testing.pyramidFlat();
 
@@ -137,6 +160,56 @@ export fn init() void {
 }
 
 export fn frame() void {
+    // call simgui.newFrame() before any ImGui calls
+    simgui.newFrame(.{
+        .width = sapp.width(),
+        .height = sapp.height(),
+        .delta_time = sapp.frameDuration(),
+        .dpi_scale = sapp.dpiScale(),
+    });
+    sappimgui.trackFrame();
+
+    const backendName: [*c]const u8 = switch (sg.queryBackend()) {
+        .D3D11 => "Direct3D11",
+        .GLCORE => "OpenGL",
+        .GLES3 => "OpenGLES3",
+        .METAL_IOS => "Metal iOS",
+        .METAL_MACOS => "Metal macOS",
+        .METAL_SIMULATOR => "Metal Simulator",
+        .WGPU => "WebGPU",
+        .VULKAN => "Vulkan",
+        .DUMMY => "Dummy",
+    };
+
+    //=== UI CODE STARTS HERE
+    ig.igSetNextWindowPos(.{ .x = 10, .y = 30 }, ig.ImGuiCond_Once);
+    ig.igSetNextWindowSize(.{ .x = 400, .y = 100 }, ig.ImGuiCond_Once);
+
+    if (ig.igBegin("Hello Dear ImGui!", &show_first_window, ig.ImGuiWindowFlags_None)) {
+        _ = ig.igColorEdit3("Background", &clear_color.r, ig.ImGuiColorEditFlags_None);
+        _ = ig.igText("Dear ImGui Version: %s", ig.IMGUI_VERSION);
+    }
+
+    ig.igEnd();
+
+    ig.igSetNextWindowPos(.{ .x = 50, .y = 150 }, ig.ImGuiCond_Once);
+    ig.igSetNextWindowSize(.{ .x = 400, .y = 100 }, ig.ImGuiCond_Once);
+
+    if (ig.igBegin("Another Window", &show_second_window, ig.ImGuiWindowFlags_None)) {
+        _ = ig.igText("Sokol Backend: %s", backendName);
+    }
+    ig.igEnd();
+
+    // the sokol-gfx-imgui debugging ui
+    if (ig.igBeginMainMenuBar()) {
+        sgimgui.drawMenu("sokol-gfx");
+        sappimgui.drawMenu("sokol-app");
+        ig.igEndMainMenuBar();
+    }
+    sgimgui.draw();
+    sappimgui.draw();
+    //=== UI CODE ENDS HERE
+
     eye_pos.y = eye_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
     eye_focus_pos.y = eye_focus_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
 
@@ -158,17 +231,25 @@ export fn frame() void {
     sg.applyBindings(bind);
     sg.applyUniforms(@intCast(shaders.donutUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
     sg.draw(0, index_count, 1);
+    simgui.render();
     sg.endPass();
     sg.commit();
 }
 
 export fn on_event(ev: [*c]const sapp.Event) void {
+    sappimgui.trackEvent(ev.*);
+    // forward input events to sokol-imgui
+    _ = simgui.handleEvent(ev.*);
+
     switch (ev.*.type) {
         .MOUSE_SCROLL => {
             model_rotation = @mod((ev.*.scroll_x * rotation_scale) + model_rotation, 360.0);
         },
         .KEY_DOWN, .KEY_UP => {
             switch (ev.*.key_code) {
+                .ESCAPE => {
+                    sapp.quit();
+                },
                 .E => {
                     if (ev.*.type == .KEY_DOWN) {
                         eye_movement.y = 0.5;
@@ -208,6 +289,9 @@ export fn on_event(ev: [*c]const sapp.Event) void {
 // }
 
 export fn cleanup() void {
+    sappimgui.shutdown();
+    simgui.shutdown();
+    sgimgui.shutdown();
     sg.shutdown();
 }
 
