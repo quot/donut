@@ -237,13 +237,18 @@ export fn frame() void {
 }
 
 export fn on_event(ev: [*c]const sapp.Event) void {
-    sappimgui.trackEvent(ev.*);
     // forward input events to sokol-imgui
-    _ = simgui.handleEvent(ev.*);
+    const imgui_handled_event = simgui.handleEvent(ev.*);
+
+    // Track events in imgui example window
+    // Main menu -> S-App -> Events
+    sappimgui.trackEvent(ev.*);
 
     switch (ev.*.type) {
         .MOUSE_SCROLL => {
-            model_rotation = @mod((ev.*.scroll_x * rotation_scale) + model_rotation, 360.0);
+            if (!imgui_handled_event) {
+                model_rotation = @mod((ev.*.scroll_x * rotation_scale) + model_rotation, 360.0);
+            }
         },
         .KEY_DOWN, .KEY_UP => {
             switch (ev.*.key_code) {
@@ -251,10 +256,12 @@ export fn on_event(ev: [*c]const sapp.Event) void {
                     sapp.quit();
                 },
                 .E => {
-                    if (ev.*.type == .KEY_DOWN) {
-                        eye_movement.y = 0.5;
-                    } else {
-                        eye_movement.y = 0.0;
+                    if (!imgui_handled_event) {
+                        if (ev.*.type == .KEY_DOWN) {
+                            eye_movement.y = 0.5;
+                        } else {
+                            eye_movement.y = 0.0;
+                        }
                     }
                 },
                 else => {},
