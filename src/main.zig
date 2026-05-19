@@ -1,3 +1,4 @@
+// Sokol imports
 const use_docking = @import("build_options").docking;
 const ig = if (use_docking) @import("cimgui_docking") else @import("cimgui");
 const sokol = @import("sokol");
@@ -9,24 +10,27 @@ const simgui = sokol.imgui;
 const sgimgui = sokol.gfximgui;
 const sappimgui = sokol.appimgui;
 
+// Donut imports
 const ui = @import("ui/base.zig");
-
 const math = @import("utils/math.zig");
-const mesh = @import("mesh.zig");
-const mesh_testing = @import("tests/test_mesh.zig");
-
+const mesh = @import("mesh/mesh.zig");
+const mesh_testing = @import("mesh/pyramid.zig");
 const shaders = @import("shaders/donut.glsl.zig");
 const VsParams = shaders.VsParams;
+
+////////////////////////////////////////////////////////////////////////
 
 var pip: sg.Pipeline = .{};
 var bind: sg.Bindings = .{};
 var pass_action: sg.PassAction = .{};
 
+// Mesh Data
 var index_count: u32 = 0;
-// var model_rotation: @Vector(2, f32) = .{ 0.0, 0.0 };
 var model_rotation: f32 = 0.0;
+var mesh_vertices: [18]mesh.MeshVertex = undefined;
 
 // Camera State
+// TODO: Move to camera struct with projection/view math
 var eye_pos: math.Vec3 = math.Vec3.new(0.0, 1.5, 5.0);
 var eye_focus_pos: math.Vec3 = math.Vec3.zero();
 var eye_movement: math.Vec3 = math.Vec3.zero();
@@ -37,42 +41,15 @@ var clear_color: sg.Color = .{ .r = 0.94, .g = 0.94, .b = 0.94, .a = 1.0 };
 const fov: f32 = 60.0;
 
 // TEST
+const apex_indices = [_]usize{ 0, 3, 6, 9 };
+var apex_pos: f32 = 1.0;
+var apex_direction: f32 = 1.0;
+const apex_max: f32 = 1.5;
+const apex_min: f32 = 0.5;
 var show_first_window: bool = true;
 var show_second_window: bool = true;
 
 ////////////////////////////////////////////////////////////////////////
-
-// const VERTEX_HIT_RADIUS: f32 = 15.0; // in pixels
-
-// var dragging_vert: i32 = -1; // index of vertex being dragged, -1 = none
-
-// // NDC → window pixel coords
-// fn ndcToScreen(nx: f32, ny: f32) struct { x: f32, y: f32 } {
-//     return .{
-//         .x = (nx + 1.0) * 0.5 * sapp.widthf(),
-//         .y = (1.0 - ny) * 0.5 * sapp.heightf(),
-//     };
-// }
-
-// // Window pixel coords → NDC
-// fn screenToNdc(px: f32, py: f32) struct { x: f32, y: f32 } {
-//     return .{
-//         .x = (px / sapp.widthf()) * 2.0 - 1.0,
-//         .y = 1.0 - (py / sapp.heightf()) * 2.0,
-//     };
-// }
-
-// fn hitTest(mx: f32, my: f32) i32 {
-//     for (&vertices, 0..) |*v, i| {
-//         const s = ndcToScreen(v.x, v.y);
-//         const dx = mx - s.x;
-//         const dy = my - s.y;
-//         if (dx * dx + dy * dy <= VERTEX_HIT_RADIUS * VERTEX_HIT_RADIUS) {
-//             return @intCast(i);
-//         }
-//     }
-//     return -1;
-// }
 
 export fn init() void {
     sg.setup(.{
@@ -92,13 +69,14 @@ export fn init() void {
     }
 
     const pyramid = mesh_testing.pyramidFlat();
+    @memcpy(mesh_vertices[0..], pyramid.vertices);
 
     bind.vertex_buffers[0] = sg.makeBuffer(.{
+        .size = @sizeOf(@TypeOf(mesh_vertices)),
         .usage = .{
             .vertex_buffer = true,
-            .immutable = true,
+            .stream_update = true,
         },
-        .data = sg.asRange(pyramid.vertices),
     });
 
     bind.index_buffer = sg.makeBuffer(.{
@@ -176,6 +154,21 @@ export fn frame() void {
     //////////////////////
     // 3D Scene Building
 
+    apex_pos += apex_direction * @as(f32, @floatCast(sapp.frameDuration()));
+    if (apex_pos >= apex_max) {
+        apex_pos = apex_max;
+        apex_direction = -@abs(apex_direction);
+    } else if (apex_pos <= apex_min) {
+        apex_pos = apex_min;
+        apex_direction = @abs(apex_direction);
+    }
+
+    for (apex_indices) |i| {
+        mesh_vertices[i].position[1] = apex_pos;
+    }
+
+    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&mesh_vertices));
+
     eye_pos.y = eye_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
     eye_focus_pos.y = eye_focus_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
 
@@ -211,6 +204,9 @@ export fn on_event(ev: [*c]const sapp.Event) void {
     sappimgui.trackEvent(ev.*);
 
     switch (ev.*.type) {
+        .QUIT_REQUESTED => {
+            // sapp.cancelQuit();
+        },
         .MOUSE_SCROLL => {
             if (!imgui_handled_event) {
                 model_rotation = @mod((ev.*.scroll_x * rotation_scale) + model_rotation, 360.0);
@@ -219,7 +215,7 @@ export fn on_event(ev: [*c]const sapp.Event) void {
         .KEY_DOWN, .KEY_UP => {
             switch (ev.*.key_code) {
                 .ESCAPE => {
-                    sapp.quit();
+                    sapp.requestQuit();
                 },
                 .E => {
                     if (!imgui_handled_event) {
@@ -236,30 +232,6 @@ export fn on_event(ev: [*c]const sapp.Event) void {
         else => {},
     }
 }
-
-// export fn on_event(ev: [*c]const sapp.Event) void {
-//     switch (ev.*.type) {
-//         .MOUSE_DOWN => {
-//             if (ev.*.mouse_button == .LEFT) {
-//                 dragging_vert = hitTest(ev.*.mouse_x, ev.*.mouse_y);
-//             }
-//         },
-//         .MOUSE_UP => {
-//             if (ev.*.mouse_button == .LEFT) {
-//                 dragging_vert = -1;
-//             }
-//         },
-//         .MOUSE_MOVE => {
-//             if (dragging_vert >= 0) {
-//                 const ndc = screenToNdc(ev.*.mouse_x, ev.*.mouse_y);
-//                 const i: usize = @intCast(dragging_vert);
-//                 vertices[i].x = ndc.x;
-//                 vertices[i].y = ndc.y;
-//             }
-//         },
-//         else => {},
-//     }
-// }
 
 export fn cleanup() void {
     sappimgui.shutdown();

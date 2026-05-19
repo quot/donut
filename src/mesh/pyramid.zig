@@ -1,6 +1,6 @@
 const math = @import("../utils/math.zig");
 
-const mesh = @import("../mesh.zig");
+const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
 const MeshData = mesh.MeshData;
 
