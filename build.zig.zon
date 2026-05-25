@@ -15,7 +15,7 @@
             .hash = "sokolshdc-0.1.0-r2KZDjCESgPWh_7sOPQXfzFSPLsAg1MqRfvwnLa4pbWC",
         },
     },
-    .minimum_zig_version = "0.15.2",
+    .minimum_zig_version = "0.16.0",
     .paths = .{""},
     .fingerprint = 0x8ebc1f7906cfe54d,
 }
