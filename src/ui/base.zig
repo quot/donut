@@ -9,7 +9,7 @@ const simgui = sokol.imgui;
 const sgimgui = sokol.gfximgui;
 const sappimgui = sokol.appimgui;
 
-pub fn buildBaseUi() void {
+pub fn drawBaseUi() void {
     // const backendName: [*c]const u8 = switch (sg.queryBackend()) {
     //     .D3D11 => "Direct3D11",
     //     .GLCORE => "OpenGL",

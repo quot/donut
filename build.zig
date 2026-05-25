@@ -8,7 +8,7 @@ const cimgui = @import("cimgui");
 pub const shdc = @import("shdc");
 
 fn buildShaders(b: *Build) !*Build.Step {
-    const shaders_dir = "src/shaders/";
+    const shaders_dir = "src/3d/shaders/";
     return shdc.createSourceFile(b, .{
         .shdc_dep = b.dependency("shdc", .{}),
         .input = b.fmt("{s}{s}.glsl", .{ shaders_dir, "donut" }),
