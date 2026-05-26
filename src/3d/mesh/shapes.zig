@@ -4,7 +4,7 @@ const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
 const MeshData = mesh.MeshData;
 
-pub fn pyramid() MeshData {
+pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };
     const front_left: [3]f32 = .{ -1.0, -1.0, 1.0 };
     const front_right: [3]f32 = .{ 1.0, -1.0, 1.0 };
@@ -27,7 +27,7 @@ pub fn pyramid() MeshData {
     const uv1: [2]f32 = .{ 0.0, 0.0 };
     const uv2: [2]f32 = .{ 1.0, 0.0 };
 
-    const pyramid_vertices = [_]MeshVertex{
+    return [18]MeshVertex{
         // front face
         MeshVertex.new(apex, n_front, uv0, red),
         MeshVertex.new(front_left, n_front, uv1, red),
@@ -58,18 +58,15 @@ pub fn pyramid() MeshData {
         MeshVertex.new(back_left, n_bottom, uv1, gray),
         MeshVertex.new(back_right, n_bottom, uv2, gray),
     };
+}
 
-    const pyramid_indices = [_]u16{
+pub fn pyramidIndices() [18]u16 {
+    return [18]u16{
         0, 1, 2,
         3, 4, 5,
         6, 7, 8,
         9, 10, 11,
         12, 13, 14,
         15, 16, 17,
-    };
-
-    return .{
-        .vertices = pyramid_vertices[0..],
-        .indices = pyramid_indices[0..],
     };
 }

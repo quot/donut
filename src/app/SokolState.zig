@@ -4,7 +4,6 @@ const sapp = sokol.app;
 const sglue = sokol.glue;
 const math = @import("../utils/math.zig");
 const mesh = @import("../3d/mesh/mesh.zig");
-const shapes = @import("../3d/mesh/shapes.zig");
 const shaders = @import("../3d/shaders/donut.glsl.zig");
 const Config = @import("Config.zig");
 pub const scene_state = @import("SceneState.zig");
@@ -20,10 +19,8 @@ pub var bind: sg.Bindings = .{};
 // pub var overlay_pip: sg.Pipeline = .{};
 // pub var overlay_bind: sg.Bindings = .{};
 
-pub fn initScene() void {
-    const pyramid = shapes.pyramid();
-    @memcpy(scene_state.mesh_vertices[0..], pyramid.vertices);
-    @memcpy(scene_state.mesh_indices[0..], pyramid.indices);
+pub fn initSokol() void {
+    scene_state.initScene();
     init3d(&scene_state.mesh_vertices, &scene_state.mesh_indices);
 }
 

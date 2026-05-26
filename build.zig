@@ -28,11 +28,7 @@ fn buildShaders(b: *Build) !*Build.Step {
 
 pub fn build(b: *Build) !void {
     const target = b.standardTargetOptions(.{});
-    const optimize = b.option(
-        OptimizeMode,
-        "optimize",
-        "Prioritize performance, safety, or binary size",
-    ) orelse .ReleaseSafe;
+    const optimize = b.standardOptimizeOption(.{});
 
     // ImGui Docking
     const opt_docking = b.option(bool, "docking", "Build with docking support") orelse false;

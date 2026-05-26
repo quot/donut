@@ -43,7 +43,7 @@ export fn init() void {
 
     ////////////////////
     // Rendering Setup
-    app.sokol_state.initScene();
+    app.sokol_state.initSokol();
     app.sokol_state.initPassActions(&app.config.clear_color);
 }
 
