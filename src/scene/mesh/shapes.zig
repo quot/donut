@@ -4,6 +4,14 @@ const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
 const MeshData = mesh.MeshData;
 
+pub fn triangleVertices() [3]MeshVertex {
+    return .{
+        .{ .x = 0.0, .y = 0.6, .r = 1.0, .g = 0.2, .b = 0.2 },
+        .{ .x = 0.6, .y = -0.6, .r = 0.2, .g = 1.0, .b = 0.2 },
+        .{ .x = -0.6, .y = -0.6, .r = 0.2, .g = 0.2, .b = 1.0 },
+    };
+}
+
 pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };
     const front_left: [3]f32 = .{ -1.0, -1.0, 1.0 };

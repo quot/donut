@@ -1,12 +1,19 @@
+// Sub States
+pub const scene = @import("SceneState.zig");
+pub const overlay = @import("OverlayState.zig");
+
+// Sokol Imports
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 const sapp = sokol.app;
 const sglue = sokol.glue;
+const slog = sokol.log;
+
+// Donut Imports
 const math = @import("../utils/math.zig");
-const mesh = @import("../3d/mesh/mesh.zig");
-const shaders = @import("../3d/shaders/donut.glsl.zig");
-const Config = @import("Config.zig");
-pub const scene_state = @import("SceneState.zig");
+const mesh = @import("../scene/mesh/mesh.zig");
+const scene_shaders = @import("../shaders/donut.glsl.zig");
+// const Config = @import("Config.zig");
 
 pub var pass_action: sg.PassAction = .{};
 
@@ -14,14 +21,17 @@ pub var pass_action: sg.PassAction = .{};
 pub var pip: sg.Pipeline = .{};
 pub var bind: sg.Bindings = .{};
 
-// TODO
-// // 2D Overlay
-// pub var overlay_pip: sg.Pipeline = .{};
-// pub var overlay_bind: sg.Bindings = .{};
+pub fn initGraphics() void {
+    sg.setup(.{
+        .environment = sglue.environment(),
+        .logger = .{ .func = slog.func },
+    });
+}
 
 pub fn initSokol() void {
-    scene_state.initScene();
-    init3d(&scene_state.mesh_vertices, &scene_state.mesh_indices);
+    scene.initScene();
+    init3d(&scene.mesh_vertices, &scene.mesh_indices);
+    overlay.initOverlay();
 }
 
 pub fn init3d(mesh_vertices: *[18]mesh.MeshVertex, mesh_indices: *[18]u16) void {
@@ -41,9 +51,9 @@ pub fn init3d(mesh_vertices: *[18]mesh.MeshVertex, mesh_indices: *[18]u16) void 
         .data = sg.asRange(mesh_indices),
     });
 
-    scene_state. index_count = @intCast(mesh_indices.*.len);
+    scene.index_count = @intCast(mesh_indices.*.len);
 
-    const shd = sg.makeShader(shaders.donutShaderDesc(sg.queryBackend()));
+    const shd = sg.makeShader(scene_shaders.donutShaderDesc(sg.queryBackend()));
 
     var pip_desc: sg.PipelineDesc = .{
         .shader = shd,
@@ -58,22 +68,22 @@ pub fn init3d(mesh_vertices: *[18]mesh.MeshVertex, mesh_indices: *[18]u16) void 
 
     pip_desc.layout.buffers[0].stride = @sizeOf(mesh.MeshVertex);
 
-    pip_desc.layout.attrs[shaders.donutAttrSlot("position").?] = .{
+    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("position").?] = .{
         .format = .FLOAT3,
         .offset = @offsetOf(mesh.MeshVertex, "position"),
     };
 
-    pip_desc.layout.attrs[shaders.donutAttrSlot("normal").?] = .{
+    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("normal").?] = .{
         .format = .FLOAT3,
         .offset = @offsetOf(mesh.MeshVertex, "normal"),
     };
 
-    pip_desc.layout.attrs[shaders.donutAttrSlot("texcoord").?] = .{
+    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("texcoord").?] = .{
         .format = .FLOAT2,
         .offset = @offsetOf(mesh.MeshVertex, "texcoord"),
     };
 
-    pip_desc.layout.attrs[shaders.donutAttrSlot("color").?] = .{
+    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("color").?] = .{
         .format = .FLOAT4,
         .offset = @offsetOf(mesh.MeshVertex, "color"),
     };
@@ -94,18 +104,23 @@ pub fn initPassActions(clear_color: *sokol.gfx.Color) void {
 }
 
 pub fn drawFrame(fov: f32) void {
-    scene_state.drawFrame();
-    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&scene_state.mesh_vertices));
+    scene.updateFrame();
+    drawScene(fov);
+    drawOverlay();
+}
+
+fn drawScene(fov: f32) void {
+    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&scene.mesh_vertices));
 
     const aspect = sapp.widthf() / sapp.heightf();
-    const model = math.Mat4.rotate(scene_state.model_rotation, math.Vec3.up());
-    const view = math.Mat4.lookat(scene_state.eye_pos, scene_state.eye_focus_pos, math.Vec3.up());
+    const model = math.Mat4.rotate(scene.model_rotation, math.Vec3.up());
+    const view = math.Mat4.lookat(scene.eye_pos, scene.eye_focus_pos, math.Vec3.up());
 
     const view_model = math.Mat4.mul(view, model);
     const proj = math.Mat4.persp(fov, aspect, 0.01, 100.0);
     const mvp = math.Mat4.mul(proj, view_model);
 
-    const vs_params: shaders.VsParams = .{
+    const vs_params: scene_shaders.VsParams = .{
         .mvp = mvp,
         .model = model,
     };
@@ -113,6 +128,14 @@ pub fn drawFrame(fov: f32) void {
     sg.beginPass(.{ .action = pass_action, .swapchain = sglue.swapchain() });
     sg.applyPipeline(pip);
     sg.applyBindings(bind);
-    sg.applyUniforms(@intCast(shaders.donutUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
-    sg.draw(0, scene_state.index_count, 1);
+    sg.applyUniforms(@intCast(scene_shaders.donutUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
+    sg.draw(0, scene.index_count, 1);
+}
+
+fn drawOverlay() void {
+    sg.updateBuffer(overlay.bind.vertex_buffers[0], sg.asRange(&overlay.overlayVerts));
+
+    sg.applyPipeline(overlay.pip);
+    sg.applyBindings(overlay.bind);
+    sg.draw(0, 3, 1);
 }

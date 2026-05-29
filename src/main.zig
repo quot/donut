@@ -12,22 +12,19 @@ const sgimgui = sokol.gfximgui;
 const sappimgui = sokol.appimgui;
 
 // Donut Imports
-const shaders = @import("3d/shaders/donut.glsl.zig");
+const shaders = @import("shaders/donut.glsl.zig");
 const VsParams = shaders.VsParams;
 const app = @import("app/State.zig");
 const ui = @import("ui/base.zig");
 const math = @import("utils/math.zig");
 
-// const mesh = @import("3d/mesh/mesh.zig");
-// const shapes = @import("3d/mesh/shapes.zig");
+// const mesh = @import("scene/mesh/mesh.zig");
+// const shapes = @import("scene/mesh/shapes.zig");
 
 ////////////////////////////////////////////////////////////////////////
 
 export fn init() void {
-    sg.setup(.{
-        .environment = sglue.environment(),
-        .logger = .{ .func = slog.func },
-    });
+    app.sokol_state.initGraphics();
 
     /////////////
     // UI Setup
@@ -85,7 +82,7 @@ export fn on_event(ev: [*c]const sapp.Event) void {
         },
         .MOUSE_SCROLL => {
             if (!imgui_handled_event) {
-                app.sokol_state.scene_state.model_rotation = @mod((ev.*.scroll_x * app.config.rotation_scale) + app.sokol_state.scene_state.model_rotation, 360.0);
+                app.sokol_state.scene.model_rotation = @mod((ev.*.scroll_x * app.config.rotation_scale) + app.sokol_state.scene.model_rotation, 360.0);
             }
         },
         .KEY_DOWN, .KEY_UP => {
@@ -96,9 +93,9 @@ export fn on_event(ev: [*c]const sapp.Event) void {
                 .E => {
                     if (!imgui_handled_event) {
                         if (ev.*.type == .KEY_DOWN) {
-                            app.sokol_state.scene_state.eye_movement.y = 0.5;
+                            app.sokol_state.scene.eye_movement.y = 0.5;
                         } else {
-                            app.sokol_state.scene_state.eye_movement.y = 0.0;
+                            app.sokol_state.scene.eye_movement.y = 0.0;
                         }
                     }
                 },
@@ -124,6 +121,7 @@ pub fn main() void {
         .cleanup_cb = cleanup,
         .width = 800,
         .height = 600,
+        // .sample_count = 4,
         .window_title = "🍩",
         .logger = .{ .func = slog.func },
     });

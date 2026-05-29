@@ -7,12 +7,21 @@ const sokol = @import("sokol");
 const cimgui = @import("cimgui");
 pub const shdc = @import("shdc");
 
-fn buildShaders(b: *Build) !*Build.Step {
-    const shaders_dir = "src/3d/shaders/";
+const ShaderFile = struct {
+    file_name: []const u8,
+};
+
+const shader_files = [_]ShaderFile{
+    .{ .file_name = "donut" },
+    .{ .file_name = "overlay" },
+};
+
+fn buildShaders(b: *Build, file: ShaderFile) !*Build.Step {
+    const shaders_dir = "src/shaders/";
     return shdc.createSourceFile(b, .{
         .shdc_dep = b.dependency("shdc", .{}),
-        .input = b.fmt("{s}{s}.glsl", .{ shaders_dir, "donut" }),
-        .output = b.fmt("{s}{s}.glsl.zig", .{ shaders_dir, "donut" }),
+        .input = b.fmt("{s}{s}.glsl", .{ shaders_dir, file.file_name }),
+        .output = b.fmt("{s}{s}.glsl.zig", .{ shaders_dir, file.file_name }),
         .slang = .{
             .glsl430 = true,
             .glsl310es = false, // Android
@@ -84,8 +93,12 @@ fn buildNative(b: *Build, mod: *Build.Module) !void {
         .name = "donut",
         .root_module = mod,
     });
-    const shd_step = try buildShaders(b);
-    exe.step.dependOn(shd_step);
+
+    for (shader_files) |cur_file| {
+        const shd_step = try buildShaders(b, cur_file);
+        exe.step.dependOn(shd_step);
+    }
+
     b.installArtifact(exe);
     b.step("run", "Run donut").dependOn(&b.addRunArtifact(exe).step);
 }
@@ -105,8 +118,10 @@ fn buildWasm(b: *Build, opts: BuildWasmOptions) !void {
         .root_module = opts.mod_main,
     });
 
-    const shd_step = try buildShaders(b);
-    donut.step.dependOn(shd_step);
+    for (shader_files) |cur_file| {
+        const shd_step = try buildShaders(b, cur_file);
+        donut.step.dependOn(shd_step);
+    }
 
     // get the Emscripten SDK dependency from the sokol dependency
     const dep_emsdk = opts.dep_sokol.builder.dependency("emsdk", .{});

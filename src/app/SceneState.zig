@@ -1,6 +1,6 @@
-const mesh = @import("../3d/mesh/mesh.zig");
+const mesh = @import("../scene/mesh/mesh.zig");
 const math = @import("../utils/math.zig");
-const shapes = @import("../3d/mesh/shapes.zig");
+const shapes = @import("../scene/mesh/shapes.zig");
 
 const sokol = @import("sokol");
 const sg = sokol.gfx;
@@ -29,7 +29,7 @@ pub fn initScene() void {
     mesh_vertices = shapes.pyramidVertices();
 }
 
-pub fn drawFrame() void {
+pub fn updateFrame() void {
     apex_pos += apex_direction * @as(f32, @floatCast(sapp.frameDuration()));
     if (apex_pos >= apex_max) {
         apex_pos = apex_max;
