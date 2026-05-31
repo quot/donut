@@ -1,14 +1,16 @@
+const std = @import("std");
 const math = @import("../../utils/math.zig");
 
 const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
 const MeshData = mesh.MeshData;
 
-pub fn triangleVertices() [3]MeshVertex {
+pub fn triangleFromCenter(cent: math.Vec2, side_len: f32) [3]math.Vec2 {
+    const height: f32 = (std.math.sqrt(3.0) / 2.0) * side_len;
     return .{
-        .{ .x = 0.0, .y = 0.6, .r = 1.0, .g = 0.2, .b = 0.2 },
-        .{ .x = 0.6, .y = -0.6, .r = 0.2, .g = 1.0, .b = 0.2 },
-        .{ .x = -0.6, .y = -0.6, .r = 0.2, .g = 0.2, .b = 1.0 },
+        math.Vec2.new(cent.x, cent.y-(height/3*2)),
+        math.Vec2.new(cent.x-(side_len/2), cent.y+(height/3)),
+        math.Vec2.new(cent.x+(side_len/2), cent.y+(height/3)),
     };
 }
 

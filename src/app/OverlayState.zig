@@ -1,3 +1,4 @@
+const std = @import("std");
 const mesh = @import("../scene/mesh/mesh.zig");
 const math = @import("../utils/math.zig");
 const shapes = @import("../scene/mesh/shapes.zig");
@@ -19,13 +20,24 @@ const OverlayVertex = extern struct {
     b: f32,
 };
 
-pub const overlayVerts: [3]OverlayVertex = .{
-    .{ .x = 0.0, .y = 0.6, .r = 1.0, .g = 0.2, .b = 0.2 },
-    .{ .x = 0.6, .y = -0.6, .r = 0.2, .g = 1.0, .b = 0.2 },
-    .{ .x = -0.6, .y = -0.6, .r = 0.2, .g = 0.2, .b = 1.0 },
-};
+const triangle: [3]math.Vec2 = shapes.triangleFromCenter(math.Vec2.new(400.0, 300.0), 10.0);
+// var ndc_triangle: [3]math.Vec2 = undefined;
+
+pub var overlayVerts: [3]OverlayVertex = undefined;
 
 pub fn initOverlay() void {
+    overlayVerts = .{
+        .{ .x = triangle[0].x, .y = triangle[0].y, .r = 0.0, .g = 0.0, .b = 0.0 },
+        .{ .x = triangle[1].x, .y = triangle[1].y, .r = 0.0, .g = 0.0, .b = 0.0 },
+        .{ .x = triangle[2].x, .y = triangle[2].y, .r = 0.0, .g = 0.0, .b = 0.0 },
+    };
+
+    std.log.debug("TRI: [{d}, {d}], [{d}, {d}], [{d}, {d}]", .{
+        overlayVerts[0].x, overlayVerts[0].y,
+        overlayVerts[1].x, overlayVerts[1].y,
+        overlayVerts[2].x, overlayVerts[2].y,
+        });
+
     // Stream vertex buffer — updated every frame
     bind.vertex_buffers[0] = sg.makeBuffer(.{
         .usage = .{ .vertex_buffer = true, .stream_update = true },

@@ -1,3 +1,5 @@
+const std = @import("std");
+
 // Sub States
 pub const scene = @import("SceneState.zig");
 pub const overlay = @import("OverlayState.zig");
@@ -13,7 +15,10 @@ const slog = sokol.log;
 const math = @import("../utils/math.zig");
 const mesh = @import("../scene/mesh/mesh.zig");
 const scene_shaders = @import("../shaders/donut.glsl.zig");
+const overlay_shaders = @import("../shaders/overlay.glsl.zig");
 // const Config = @import("Config.zig");
+
+pub var gpa: *const std.mem.Allocator = undefined;
 
 pub var pass_action: sg.PassAction = .{};
 
@@ -134,8 +139,12 @@ fn drawScene(fov: f32) void {
 
 fn drawOverlay() void {
     sg.updateBuffer(overlay.bind.vertex_buffers[0], sg.asRange(&overlay.overlayVerts));
+    const vs_params: overlay_shaders.VsParams = .{
+        .screen_size = .{sapp.widthf(), sapp.heightf()}
+    };
 
     sg.applyPipeline(overlay.pip);
     sg.applyBindings(overlay.bind);
+    sg.applyUniforms(@intCast(overlay_shaders.overlayUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
     sg.draw(0, 3, 1);
 }

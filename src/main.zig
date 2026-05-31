@@ -1,3 +1,5 @@
+const std = @import("std");
+
 // Sokol Imports
 const use_docking = @import("build_options").docking;
 const ig = if (use_docking) @import("cimgui_docking") else @import("cimgui");
@@ -18,12 +20,26 @@ const app = @import("app/State.zig");
 const ui = @import("ui/base.zig");
 const math = @import("utils/math.zig");
 
-// const mesh = @import("scene/mesh/mesh.zig");
-// const shapes = @import("scene/mesh/shapes.zig");
-
 ////////////////////////////////////////////////////////////////////////
 
-export fn init() void {
+pub fn main(init: std.process.Init) void {
+    const gpa = init.gpa;
+    app.setAlloc(&gpa);
+
+    sapp.run(.{
+        .init_cb = initCb,
+        .frame_cb = frameCb,
+        .event_cb = onEventCb,
+        .cleanup_cb = cleanupCb,
+        .width = 800,
+        .height = 600,
+        // .sample_count = 4,
+        .window_title = "🍩",
+        .logger = .{ .func = slog.func },
+    });
+}
+
+export fn initCb() void {
     app.sokol_state.initGraphics();
 
     /////////////
@@ -44,7 +60,7 @@ export fn init() void {
     app.sokol_state.initPassActions(&app.config.clear_color);
 }
 
-export fn frame() void {
+export fn frameCb() void {
     // call simgui.newFrame() before any ImGui calls
     simgui.newFrame(.{
         .width = sapp.width(),
@@ -68,12 +84,11 @@ export fn frame() void {
     sg.commit();
 }
 
-export fn on_event(ev: [*c]const sapp.Event) void {
+export fn onEventCb(ev: [*c]const sapp.Event) void {
     // forward input events to sokol-imgui
     const imgui_handled_event = simgui.handleEvent(ev.*);
 
     // Track events in imgui example window
-    // Main menu -> S-App -> Events
     sappimgui.trackEvent(ev.*);
 
     switch (ev.*.type) {
@@ -106,23 +121,9 @@ export fn on_event(ev: [*c]const sapp.Event) void {
     }
 }
 
-export fn cleanup() void {
+export fn cleanupCb() void {
     sappimgui.shutdown();
     simgui.shutdown();
     sgimgui.shutdown();
     sg.shutdown();
-}
-
-pub fn main() void {
-    sapp.run(.{
-        .init_cb = init,
-        .frame_cb = frame,
-        .event_cb = on_event,
-        .cleanup_cb = cleanup,
-        .width = 800,
-        .height = 600,
-        // .sample_count = 4,
-        .window_title = "🍩",
-        .logger = .{ .func = slog.func },
-    });
 }
