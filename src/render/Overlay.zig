@@ -2,14 +2,16 @@ const std = @import("std");
 const mesh = @import("../scene/mesh/mesh.zig");
 const math = @import("../utils/math.zig");
 const shapes = @import("../scene/mesh/shapes.zig");
-const overlay_shaders = @import("../shaders/overlay.glsl.zig");
+const overlay_shaders = @import("./shaders/overlay.glsl.zig");
 
 const sokol = @import("sokol");
 const sg = sokol.gfx;
 const sapp = sokol.app;
 
-pub var pip: sg.Pipeline = .{};
-pub var bind: sg.Bindings = .{};
+var pip: sg.Pipeline = .{};
+var bind: sg.Bindings = .{};
+
+var vs_params: overlay_shaders.VsParams = undefined;
 
 // Interleaved vertex: position (xy) + color (rgb)
 const OverlayVertex = extern struct {
@@ -36,7 +38,7 @@ pub fn initOverlay() void {
         overlayVerts[0].x, overlayVerts[0].y,
         overlayVerts[1].x, overlayVerts[1].y,
         overlayVerts[2].x, overlayVerts[2].y,
-        });
+    });
 
     // Stream vertex buffer — updated every frame
     bind.vertex_buffers[0] = sg.makeBuffer(.{
@@ -53,4 +55,14 @@ pub fn initOverlay() void {
     pip_desc.layout.attrs[0] = .{ .format = .FLOAT2 }; // position
     pip_desc.layout.attrs[1] = .{ .format = .FLOAT3 }; // color
     pip = sg.makePipeline(pip_desc);
+}
+
+pub fn drawFrame() void {
+    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&overlayVerts));
+    vs_params = .{ .screen_size = .{ sapp.widthf(), sapp.heightf() } };
+
+    sg.applyPipeline(pip);
+    sg.applyBindings(bind);
+    sg.applyUniforms(@intCast(overlay_shaders.overlayUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
+    sg.draw(0, 3, 1);
 }

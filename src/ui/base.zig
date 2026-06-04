@@ -1,15 +1,12 @@
 const use_docking = @import("build_options").docking;
 const ig = if (use_docking) @import("cimgui_docking") else @import("cimgui");
+
 const sokol = @import("sokol");
 const sg = sokol.gfx;
-const sapp = sokol.app;
-const sglue = sokol.glue;
-const slog = sokol.log;
-const simgui = sokol.imgui;
 const sgimgui = sokol.gfximgui;
 const sappimgui = sokol.appimgui;
 
-pub fn drawBaseUi() void {
+pub fn buildUi() void {
     // const backendName: [*c]const u8 = switch (sg.queryBackend()) {
     //     .D3D11 => "Direct3D11",
     //     .GLCORE => "OpenGL",
@@ -22,7 +19,6 @@ pub fn drawBaseUi() void {
     //     .DUMMY => "Dummy",
     // };
 
-    //=== UI CODE STARTS HERE
     ig.igSetNextWindowPos(.{ .x = 10, .y = 30 }, ig.ImGuiCond_Once);
     ig.igSetNextWindowSize(.{ .x = 400, .y = 100 }, ig.ImGuiCond_Once);
 
@@ -46,7 +42,4 @@ pub fn drawBaseUi() void {
         sappimgui.drawMenu("sokol-app");
         ig.igEndMainMenuBar();
     }
-    sgimgui.draw();
-    sappimgui.draw();
-    //=== UI CODE ENDS HERE
 }
