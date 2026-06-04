@@ -22,16 +22,19 @@ const OverlayVertex = extern struct {
     b: f32,
 };
 
-const triangle: [3]math.Vec2 = shapes.triangleFromCenter(math.Vec2.new(400.0, 300.0), 10.0);
-// var ndc_triangle: [3]math.Vec2 = undefined;
+const tri_side_len: f32 = 20.0;
+const tri_r: f32 = 1.0;
+const tri_g: f32 = 0.0;
+const tri_b: f32 = 0.86;
+var triangle: [3]math.Vec2 = shapes.triangleFromCenter(math.Vec2.new(400.0, 300.0), tri_side_len);
 
 pub var overlayVerts: [3]OverlayVertex = undefined;
 
 pub fn initOverlay() void {
     overlayVerts = .{
-        .{ .x = triangle[0].x, .y = triangle[0].y, .r = 0.0, .g = 0.0, .b = 0.0 },
-        .{ .x = triangle[1].x, .y = triangle[1].y, .r = 0.0, .g = 0.0, .b = 0.0 },
-        .{ .x = triangle[2].x, .y = triangle[2].y, .r = 0.0, .g = 0.0, .b = 0.0 },
+        .{ .x = triangle[0].x, .y = triangle[0].y, .r = tri_r, .g = tri_g, .b = tri_b },
+        .{ .x = triangle[1].x, .y = triangle[1].y, .r = tri_r, .g = tri_g, .b = tri_b },
+        .{ .x = triangle[2].x, .y = triangle[2].y, .r = tri_r, .g = tri_g, .b = tri_b },
     };
 
     std.log.debug("TRI: [{d}, {d}], [{d}, {d}], [{d}, {d}]", .{
@@ -57,7 +60,20 @@ pub fn initOverlay() void {
     pip = sg.makePipeline(pip_desc);
 }
 
-pub fn drawFrame() void {
+pub fn drawFrame(tri_screen_pos: ?math.Vec2) void {
+    if (tri_screen_pos != null) {
+        triangle = shapes.triangleFromCenter(tri_screen_pos.?, tri_side_len);
+
+        overlayVerts[0].x = triangle[0].x;
+        overlayVerts[0].y = triangle[0].y;
+
+        overlayVerts[1].x = triangle[1].x;
+        overlayVerts[1].y = triangle[1].y;
+
+        overlayVerts[2].x = triangle[2].x;
+        overlayVerts[2].y = triangle[2].y;
+    }
+
     sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&overlayVerts));
     vs_params = .{ .screen_size = .{ sapp.widthf(), sapp.heightf() } };
 

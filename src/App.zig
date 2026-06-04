@@ -9,6 +9,9 @@ const scene = @import("./render/Scene.zig");
 const overlay = @import("./render/Overlay.zig");
 const gui = @import("./render/Gui.zig");
 
+// TESTING: Overlay frame update
+const math = @import("./utils/math.zig");
+
 pub fn setAlloc(alloc: *const std.mem.Allocator) void {
     scene.gpa = alloc;
 }
@@ -21,21 +24,18 @@ pub fn appInit() void {
 
 pub fn drawFrame() void {
     scene.drawFrame(config.fov);
-    overlay.drawFrame();
+    overlay.drawFrame(math.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
     gui.drawFrame();
 }
 
 pub fn eventHandler(ev: [*c]const sapp.Event) void {
-    // forward input events to sokol-imgui
+    // Forward input events to sokol-imgui
     const imgui_handled_event = event_man.simgui.handleEvent(ev.*);
 
     // Track events in imgui example window
     event_man.sappimgui.trackEvent(ev.*);
 
     switch (ev.*.type) {
-        .QUIT_REQUESTED => {
-            // sapp.cancelQuit();
-        },
         .MOUSE_SCROLL => {
             if (!imgui_handled_event) {
                 scene.model_rotation = @mod((ev.*.scroll_x * config.rotation_scale) + scene.model_rotation, 360.0);
@@ -58,6 +58,9 @@ pub fn eventHandler(ev: [*c]const sapp.Event) void {
                 else => {},
             }
         },
+        // .QUIT_REQUESTED => {
+        //     sapp.cancelQuit();
+        // },
         else => {},
     }
 }

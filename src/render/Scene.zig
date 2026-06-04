@@ -21,6 +21,8 @@ pub var eye_pos: math.Vec3 = math.Vec3.new(0.0, 1.5, 5.0);
 pub var eye_focus_pos: math.Vec3 = math.Vec3.zero();
 pub var eye_movement: math.Vec3 = math.Vec3.zero();
 
+pub var mvp: math.Mat4 = undefined;
+
 pub var gpa: *const std.mem.Allocator = undefined;
 
 pub var pip: sg.Pipeline = .{};
@@ -130,7 +132,7 @@ pub fn drawFrame(fov: f32) void {
 
     const view_model = math.Mat4.mul(view, model);
     const proj = math.Mat4.persp(fov, aspect, 0.01, 100.0);
-    const mvp = math.Mat4.mul(proj, view_model);
+    mvp = math.Mat4.mul(proj, view_model);
 
     const vs_params: scene_shaders.VsParams = .{
         .mvp = mvp,
@@ -142,3 +144,10 @@ pub fn drawFrame(fov: f32) void {
     sg.applyUniforms(@intCast(scene_shaders.donutUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
     sg.draw(0, index_count, 1);
 }
+
+//////////////////////////////////
+// TESTING: Overlay frame update
+pub fn getApexPos() math.Vec3 {
+    return math.Vec3.new(mesh_vertices[apex_indices[0]].position[0], mesh_vertices[apex_indices[0]].position[1], mesh_vertices[apex_indices[0]].position[2]);
+}
+//////////////////////////////////
