@@ -1,13 +1,25 @@
 const std = @import("std");
 
-const sapp = @import("sokol").app;
+const config = @import("./Config.zig");
 
-pub const config = @import("./Config.zig");
-const event_man = @import("./EventManager.zig");
+// Sokol
+const sokol = @import("sokol");
+const sapp = sokol.app;
+const sglue = sokol.glue;
+const slog = sokol.log;
+const sg = sokol.gfx;
 
+var pass_action: sg.PassAction = .{};
+
+// Rendering
 const scene = @import("./render/Scene.zig");
 const overlay = @import("./render/Overlay.zig");
 const gui = @import("./render/Gui.zig");
+
+// ImGui
+pub const simgui = sokol.imgui;
+pub const sgimgui = sokol.gfximgui;
+pub const sappimgui = sokol.appimgui;
 
 // TESTING: Overlay frame update
 const math = @import("./utils/math.zig");
@@ -16,24 +28,48 @@ pub fn setAlloc(alloc: *const std.mem.Allocator) void {
     scene.gpa = alloc;
 }
 
-pub fn appInit() void {
+pub export fn initCb() void {
+    // Init graphics
+    sg.setup(.{
+        .environment = sglue.environment(),
+        .logger = .{ .func = slog.func },
+    });
+
+    // Setup Donut State Managers
     scene.init();
     overlay.initOverlay();
     gui.initUi();
+
+    // Setup screen clearing
+    pass_action.colors[0] = .{
+        .load_action = .CLEAR,
+        .clear_value = config.clear_color,
+    };
+    pass_action.depth = .{
+        .load_action = .CLEAR,
+        .clear_value = 1.0,
+    };
 }
 
-pub fn drawFrame() void {
+pub export fn frameCb() void {
+    sg.beginPass(.{ .action = pass_action, .swapchain = sglue.swapchain() });
+
+    // Donut Frame Updates
     scene.drawFrame(config.fov);
     overlay.drawFrame(math.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
     gui.drawFrame();
+
+    // Final Rendering
+    sg.endPass();
+    sg.commit();
 }
 
-pub fn eventHandler(ev: [*c]const sapp.Event) void {
+pub export fn eventCb(ev: [*c]const sapp.Event) void {
     // Forward input events to sokol-imgui
-    const imgui_handled_event = event_man.simgui.handleEvent(ev.*);
+    const imgui_handled_event = simgui.handleEvent(ev.*);
 
     // Track events in imgui example window
-    event_man.sappimgui.trackEvent(ev.*);
+    sappimgui.trackEvent(ev.*);
 
     switch (ev.*.type) {
         .MOUSE_SCROLL => {
@@ -65,8 +101,9 @@ pub fn eventHandler(ev: [*c]const sapp.Event) void {
     }
 }
 
-pub fn cleanup() void {
+pub export fn cleanupCb() void {
     gui.sappimgui.shutdown();
     gui.simgui.shutdown();
     gui.sgimgui.shutdown();
+    sg.shutdown();
 }
