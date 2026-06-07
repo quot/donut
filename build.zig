@@ -5,7 +5,7 @@ const ResolvedTarget = Build.ResolvedTarget;
 const Dependency = Build.Dependency;
 const sokol = @import("sokol");
 const cimgui = @import("cimgui");
-pub const shdc = @import("shdc");
+pub const shdc = sokol.shdc;
 
 const ShaderFile = struct {
     file_name: []const u8,
@@ -16,10 +16,10 @@ const shader_files = [_]ShaderFile{
     .{ .file_name = "overlay" },
 };
 
-fn buildShaders(b: *Build, file: ShaderFile) !*Build.Step {
+fn buildShaders(b: *Build, file: ShaderFile, dep_shdc: *Build.Dependency) !*Build.Step {
     const shaders_dir = "src/shaders/";
     return shdc.createSourceFile(b, .{
-        .shdc_dep = b.dependency("shdc", .{}),
+        .shdc_dep = dep_shdc,
         .input = b.fmt("{s}{s}.glsl", .{ shaders_dir, file.file_name }),
         .output = b.fmt("{s}{s}.glsl.zig", .{ shaders_dir, file.file_name }),
         .slang = .{
@@ -53,6 +53,7 @@ pub fn build(b: *Build) !void {
         .with_sokol_imgui = true,
         .with_tracing = true,
     });
+    const dep_shdc = dep_sokol.builder.dependency("shdc", .{});
     const dep_cimgui = b.dependency("cimgui", .{
         .target = target,
         .optimize = optimize,
@@ -82,20 +83,20 @@ pub fn build(b: *Build) !void {
             .dep_sokol = dep_sokol,
             .dep_cimgui = dep_cimgui,
             .cimgui_clib_name = cimgui_conf.clib_name,
-        });
+        }, dep_shdc);
     } else {
-        try buildNative(b, mod_main);
+        try buildNative(b, mod_main, dep_shdc);
     }
 }
 
-fn buildNative(b: *Build, mod: *Build.Module) !void {
+fn buildNative(b: *Build, mod: *Build.Module, dep_shdc: *Build.Dependency) !void {
     const exe = b.addExecutable(.{
         .name = "donut",
         .root_module = mod,
     });
 
     for (shader_files) |cur_file| {
-        const shd_step = try buildShaders(b, cur_file);
+        const shd_step = try buildShaders(b, cur_file, dep_shdc);
         exe.step.dependOn(shd_step);
     }
 
@@ -110,7 +111,7 @@ const BuildWasmOptions = struct {
     cimgui_clib_name: []const u8,
 };
 
-fn buildWasm(b: *Build, opts: BuildWasmOptions) !void {
+fn buildWasm(b: *Build, opts: BuildWasmOptions, dep_shdc: *Build.Dependency) !void {
     // build the main file into a library, this is because the WASM 'exe'
     // needs to be linked in a separate build step with the Emscripten linker
     const donut = b.addLibrary(.{
@@ -119,7 +120,7 @@ fn buildWasm(b: *Build, opts: BuildWasmOptions) !void {
     });
 
     for (shader_files) |cur_file| {
-        const shd_step = try buildShaders(b, cur_file);
+        const shd_step = try buildShaders(b, cur_file, dep_shdc);
         donut.step.dependOn(shd_step);
     }
 
