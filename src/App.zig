@@ -1,7 +1,5 @@
 const std = @import("std");
 
-const config = @import("./Config.zig");
-
 // Sokol
 const sokol = @import("sokol");
 const sapp = sokol.app;
@@ -21,11 +19,15 @@ pub const simgui = sokol.imgui;
 pub const sgimgui = sokol.gfximgui;
 pub const sappimgui = sokol.appimgui;
 
+// App States
+const config = @import("./Config.zig");
+var gpa: *const std.mem.Allocator = undefined;
+
 // TESTING: Overlay frame update
 const math = @import("./utils/math.zig");
 
 pub fn setAlloc(alloc: *const std.mem.Allocator) void {
-    scene.gpa = alloc;
+    gpa = alloc;
 }
 
 pub export fn initCb() void {
@@ -36,7 +38,7 @@ pub export fn initCb() void {
     });
 
     // Setup Donut State Managers
-    scene.init();
+    scene.init(gpa);
     overlay.initOverlay();
     gui.initUi();
 

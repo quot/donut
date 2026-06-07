@@ -35,7 +35,9 @@ var apex_direction: f32 = 1.0;
 const apex_max: f32 = 1.5;
 const apex_min: f32 = 0.5;
 
-pub fn init() void {
+pub fn init(appGpa: *const std.mem.Allocator) void {
+    gpa = appGpa;
+
     ///////////////
     // Mesh Setup
 
