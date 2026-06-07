@@ -1,8 +1,7 @@
 const std = @import("std");
-const mesh = @import("../scene/mesh/mesh.zig");
 const math = @import("../utils/math.zig");
-const shapes = @import("../scene/mesh/shapes.zig");
-const overlay_shaders = @import("./shaders/overlay.glsl.zig");
+const shapes = @import("../3d/shapes.zig");
+const overlay_shaders = @import("../shaders/overlay.glsl.zig");
 
 const sokol = @import("sokol");
 const sg = sokol.gfx;
@@ -13,7 +12,6 @@ var bind: sg.Bindings = .{};
 
 var vs_params: overlay_shaders.VsParams = undefined;
 
-// Interleaved vertex: position (xy) + color (rgb)
 const OverlayVertex = extern struct {
     x: f32,
     y: f32,

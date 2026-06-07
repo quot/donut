@@ -1,9 +1,9 @@
 const std = @import("std");
-const math = @import("../../utils/math.zig");
+const math = @import("../utils/math.zig");
 
 const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
-const MeshData = mesh.MeshData;
+// const MeshData = mesh.MeshData;
 
 pub fn triangleFromCenter(cent: math.Vec2, side_len: f32) [3]math.Vec2 {
     const height: f32 = (std.math.sqrt(3.0) / 2.0) * side_len;
@@ -13,6 +13,18 @@ pub fn triangleFromCenter(cent: math.Vec2, side_len: f32) [3]math.Vec2 {
         math.Vec2.new(cent.x+(side_len/2), cent.y+(height/3)),
     };
 }
+
+// pub fn cube() []MeshVertex {
+//     const red: [4]f32 = .{ 1.0, 0.2, 0.2, 1.0 };
+//     const green: [4]f32 = .{ 0.2, 1.0, 0.2, 1.0 };
+//     const blue: [4]f32 = .{ 0.2, 0.3, 1.0, 1.0 };
+//     const yellow: [4]f32 = .{ 1.0, 0.85, 0.2, 1.0 };
+//     const gray: [4]f32 = .{ 0.65, 0.65, 0.7, 1.0 };
+
+//     return [_]MeshVertex{
+//         MeshVertex.new(, normal: [3]f32, texcoord: [2]f32, color: [4]f32)
+//     }
+// }
 
 pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };

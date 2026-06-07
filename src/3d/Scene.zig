@@ -1,10 +1,10 @@
 const std = @import("std");
 
-const scene_shaders = @import("./shaders/donut.glsl.zig");
+const scene_shaders = @import("../shaders/donut.glsl.zig");
 
-const mesh = @import("../scene/mesh/mesh.zig");
+const mesh = @import("../3d/mesh.zig");
 const math = @import("../utils/math.zig");
-const shapes = @import("../scene/mesh/shapes.zig");
+const shapes = @import("../3d/shapes.zig");
 
 const sokol = @import("sokol");
 const sg = sokol.gfx;

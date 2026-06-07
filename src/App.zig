@@ -10,9 +10,9 @@ const sg = sokol.gfx;
 var pass_action: sg.PassAction = .{};
 
 // Rendering
-const scene = @import("./render/Scene.zig");
-const overlay = @import("./render/Overlay.zig");
-const gui = @import("./render/Gui.zig");
+const scene = @import("./3d/Scene.zig");
+const overlay = @import("./overlay/Overlay.zig");
+const gui = @import("./ui/Gui.zig");
 
 // ImGui
 pub const simgui = sokol.imgui;

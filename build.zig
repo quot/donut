@@ -17,7 +17,7 @@ const shader_files = [_]ShaderFile{
 };
 
 fn buildShaders(b: *Build, file: ShaderFile) !*Build.Step {
-    const shaders_dir = "src/render/shaders/";
+    const shaders_dir = "src/shaders/";
     return shdc.createSourceFile(b, .{
         .shdc_dep = b.dependency("shdc", .{}),
         .input = b.fmt("{s}{s}.glsl", .{ shaders_dir, file.file_name }),

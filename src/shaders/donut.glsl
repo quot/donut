@@ -1,4 +1,4 @@
-@header const m = @import("../../utils/math.zig")
+@header const m = @import("../utils/math.zig")
 @ctype mat4 m.Mat4
 
 @vs vs

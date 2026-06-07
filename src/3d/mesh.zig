@@ -9,6 +9,11 @@ pub const MeshVertex = extern struct {
     }
 };
 
+pub const NGonMeshData = struct {
+    vertices: []const MeshVertex,
+    indices: [][]const u16,
+};
+
 pub const MeshData = struct {
     vertices: []const MeshVertex,
     indices: []const u16,
