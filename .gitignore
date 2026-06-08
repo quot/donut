@@ -1,5 +1,6 @@
 *.glsl.zig
 .zig-cache/
 zig-out/
+zig-pkg/
 *.o
 .DS_Store
