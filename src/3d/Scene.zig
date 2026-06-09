@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const scene_shaders = @import("../shaders/donut.glsl.zig");
+const scene_shaders = @import("../shaders/scene.glsl.zig");
 
 const mesh = @import("../3d/mesh.zig");
 const math = @import("../utils/math.zig");
@@ -13,8 +13,8 @@ const sapp = sokol.app;
 // Mesh Data
 pub var index_count: u32 = 0;
 pub var model_rotation: f32 = 0.0;
-pub var mesh_vertices: [18]mesh.MeshVertex = undefined;
-pub var mesh_indices: [18]u16 = undefined;
+pub var mesh_vertices: []mesh.MeshVertex = undefined;
+pub var mesh_indices: []u16 = undefined;
 
 // Camera State
 pub var eye_pos: math.Vec3 = math.Vec3.new(0.0, 1.5, 5.0);
@@ -28,36 +28,117 @@ pub var gpa: *const std.mem.Allocator = undefined;
 pub var pip: sg.Pipeline = .{};
 pub var bind: sg.Bindings = .{};
 
-// TEST
+//////////////
+// TESTING
+
+// Pyramid
 const apex_indices = [_]usize{ 0, 3, 6, 9 };
 var apex_pos: f32 = 1.0;
 var apex_direction: f32 = 1.0;
 const apex_max: f32 = 1.5;
 const apex_min: f32 = 0.5;
 
+// Cube
+var cube: mesh.NGon = undefined;
+var cube_mesh_verts: std.ArrayList(mesh.MeshVertex) = undefined;
+var cube_mesh_indices: std.ArrayList(u16) = undefined;
+
+///////////////
+
 pub fn init(appGpa: *const std.mem.Allocator) void {
     gpa = appGpa;
+
+    ////////////////////
+    // Test Cube Build
+    cube = mesh.NGon.new(gpa);
+    cube_mesh_verts = std.ArrayList(mesh.MeshVertex).empty;
+    cube_mesh_indices = std.ArrayList(u16).empty;
+
+    cube.addVert(.{ .position = @Vector(3, f32){ -1.0, 1.0, 1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ 1.0, 1.0, 1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ -1.0, 1.0, -1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ 1.0, 1.0, -1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ -1.0, -1.0, 1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ 1.0, -1.0, 1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ -1.0, -1.0, -1.0 } });
+    cube.addVert(.{ .position = @Vector(3, f32){ 1.0, -1.0, -1.0 } });
+
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[0], &cube.vertices.items[1] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[0], &cube.vertices.items[2] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[0], &cube.vertices.items[4] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[1], &cube.vertices.items[3] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[1], &cube.vertices.items[5] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[3], &cube.vertices.items[2] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[3], &cube.vertices.items[7] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[2], &cube.vertices.items[6] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[6], &cube.vertices.items[4] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[6], &cube.vertices.items[7] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[4], &cube.vertices.items[5] } });
+    cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[5], &cube.vertices.items[7] } });
+
+    var face_ind = cube.newFace(.{0,0,0,1});
+    // std.log.debug("FACE APPENDED! - Index: {d}", .{faceInd});
+
+    cube.addFaceEdge(face_ind, &cube.edges.items[0]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[3]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[5]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[1]);
+
+    face_ind = cube.newFace(.{0,0,0,1});
+    cube.addFaceEdge(face_ind, &cube.edges.items[2]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[0]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[4]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[10]);
+
+
+    face_ind = cube.newFace(.{0,0,0,1});
+    cube.addFaceEdge(face_ind, &cube.edges.items[7]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[1]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[2]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[8]);
+
+    face_ind = cube.newFace(.{0,0,0,1});
+    cube.addFaceEdge(face_ind, &cube.edges.items[6]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[3]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[4]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[11]);
+
+    face_ind = cube.newFace(.{0,0,0,1});
+    cube.addFaceEdge(face_ind, &cube.edges.items[8]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[10]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[6]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[9]);
+
+    face_ind = cube.newFace(.{0,0,0,1});
+    cube.addFaceEdge(face_ind, &cube.edges.items[9]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[7]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[5]);
+    cube.addFaceEdge(face_ind, &cube.edges.items[6]);
+
+    cube.buildMesh();
+
 
     ///////////////
     // Mesh Setup
 
-    mesh_indices = shapes.pyramidIndices();
-    mesh_vertices = shapes.pyramidVertices();
+    mesh_vertices = cube.mesh_verts.items;
 
     bind.vertex_buffers[0] = sg.makeBuffer(.{
-        .size = @sizeOf(@TypeOf(mesh_vertices)),
+        .size = mesh_vertices.len * @sizeOf(mesh.MeshVertex),
         .usage = .{
             .vertex_buffer = true,
             .stream_update = true,
         },
     });
 
+    mesh_indices = cube.mesh_indices.items;
+
     bind.index_buffer = sg.makeBuffer(.{
         .usage = .{
             .index_buffer = true,
             .immutable = true,
         },
-        .data = sg.asRange(&mesh_indices),
+        .data = sg.asRange(mesh_indices),
     });
 
     index_count = @intCast(mesh_indices.len);
@@ -65,7 +146,7 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
     ///////////////////
     // Pipeline Setup
 
-    const shd = sg.makeShader(scene_shaders.donutShaderDesc(sg.queryBackend()));
+    const shd = sg.makeShader(scene_shaders.sceneShaderDesc(sg.queryBackend()));
 
     var pip_desc: sg.PipelineDesc = .{
         .shader = shd,
@@ -80,22 +161,22 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
 
     pip_desc.layout.buffers[0].stride = @sizeOf(mesh.MeshVertex);
 
-    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("position").?] = .{
+    pip_desc.layout.attrs[scene_shaders.sceneAttrSlot("position").?] = .{
         .format = .FLOAT3,
         .offset = @offsetOf(mesh.MeshVertex, "position"),
     };
 
-    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("normal").?] = .{
+    pip_desc.layout.attrs[scene_shaders.sceneAttrSlot("normal").?] = .{
         .format = .FLOAT3,
         .offset = @offsetOf(mesh.MeshVertex, "normal"),
     };
 
-    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("texcoord").?] = .{
+    pip_desc.layout.attrs[scene_shaders.sceneAttrSlot("texcoord").?] = .{
         .format = .FLOAT2,
         .offset = @offsetOf(mesh.MeshVertex, "texcoord"),
     };
 
-    pip_desc.layout.attrs[scene_shaders.donutAttrSlot("color").?] = .{
+    pip_desc.layout.attrs[scene_shaders.sceneAttrSlot("color").?] = .{
         .format = .FLOAT4,
         .offset = @offsetOf(mesh.MeshVertex, "color"),
     };
@@ -107,18 +188,18 @@ pub fn drawFrame(fov: f32) void {
     /////////////////
     // Mesh Updates
 
-    apex_pos += apex_direction * @as(f32, @floatCast(sapp.frameDuration()));
-    if (apex_pos >= apex_max) {
-        apex_pos = apex_max;
-        apex_direction = -@abs(apex_direction);
-    } else if (apex_pos <= apex_min) {
-        apex_pos = apex_min;
-        apex_direction = @abs(apex_direction);
-    }
+    // apex_pos += apex_direction * @as(f32, @floatCast(sapp.frameDuration()));
+    // if (apex_pos >= apex_max) {
+    //     apex_pos = apex_max;
+    //     apex_direction = -@abs(apex_direction);
+    // } else if (apex_pos <= apex_min) {
+    //     apex_pos = apex_min;
+    //     apex_direction = @abs(apex_direction);
+    // }
 
-    for (apex_indices) |i| {
-        mesh_vertices[i].position[1] = apex_pos;
-    }
+    // for (apex_indices) |i| {
+    //     mesh_vertices[i].position[1] = apex_pos;
+    // }
 
     ///////////
     // Render
@@ -126,7 +207,7 @@ pub fn drawFrame(fov: f32) void {
     eye_pos.y = eye_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
     eye_focus_pos.y = eye_focus_pos.y + @as(f32, @floatCast(sapp.frameDuration() * eye_movement.y));
 
-    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(&mesh_vertices));
+    sg.updateBuffer(bind.vertex_buffers[0], sg.asRange(mesh_vertices));
 
     const aspect = sapp.widthf() / sapp.heightf();
     const model = math.Mat4.rotate(model_rotation, math.Vec3.up());
@@ -143,7 +224,7 @@ pub fn drawFrame(fov: f32) void {
 
     sg.applyPipeline(pip);
     sg.applyBindings(bind);
-    sg.applyUniforms(@intCast(scene_shaders.donutUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
+    sg.applyUniforms(@intCast(scene_shaders.sceneUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
     sg.draw(0, index_count, 1);
 }
 

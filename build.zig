@@ -12,7 +12,7 @@ const ShaderFile = struct {
 };
 
 const shader_files = [_]ShaderFile{
-    .{ .file_name = "donut" },
+    .{ .file_name = "scene" },
     .{ .file_name = "overlay" },
 };
 

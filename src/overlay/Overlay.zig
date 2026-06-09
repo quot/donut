@@ -1,6 +1,6 @@
 const std = @import("std");
 const math = @import("../utils/math.zig");
-const shapes = @import("../3d/shapes.zig");
+const shapes = @import("./shapes.zig");
 const overlay_shaders = @import("../shaders/overlay.glsl.zig");
 
 const sokol = @import("sokol");
@@ -24,7 +24,7 @@ const tri_side_len: f32 = 20.0;
 const tri_r: f32 = 1.0;
 const tri_g: f32 = 0.0;
 const tri_b: f32 = 0.86;
-var triangle: [3]math.Vec2 = shapes.triangleFromCenter(math.Vec2.new(400.0, 300.0), tri_side_len);
+var triangle: [3]math.Vec2 = shapes.triangle(math.Vec2.new(400.0, 300.0), tri_side_len);
 
 pub var overlayVerts: [3]OverlayVertex = undefined;
 
@@ -60,7 +60,7 @@ pub fn initOverlay() void {
 
 pub fn drawFrame(tri_screen_pos: ?math.Vec2) void {
     if (tri_screen_pos != null) {
-        triangle = shapes.triangleFromCenter(tri_screen_pos.?, tri_side_len);
+        triangle = shapes.triangle(tri_screen_pos.?, tri_side_len);
 
         overlayVerts[0].x = triangle[0].x;
         overlayVerts[0].y = triangle[0].y;

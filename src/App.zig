@@ -25,6 +25,7 @@ var gpa: *const std.mem.Allocator = undefined;
 
 // TESTING: Overlay frame update
 const math = @import("./utils/math.zig");
+const coords = @import("./utils/coords.zig");
 
 pub fn setAlloc(alloc: *const std.mem.Allocator) void {
     gpa = alloc;
@@ -37,7 +38,7 @@ pub export fn initCb() void {
         .logger = .{ .func = slog.func },
     });
 
-    // Setup Donut State Managers
+    // Setup State Managers
     scene.init(gpa);
     overlay.initOverlay();
     gui.initUi();
@@ -56,9 +57,9 @@ pub export fn initCb() void {
 pub export fn frameCb() void {
     sg.beginPass(.{ .action = pass_action, .swapchain = sglue.swapchain() });
 
-    // Donut Frame Updates
+    // Frame Updates
     scene.drawFrame(config.fov);
-    overlay.drawFrame(math.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
+    overlay.drawFrame(coords.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
     gui.drawFrame();
 
     // Final Rendering

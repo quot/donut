@@ -10,18 +10,19 @@ const slog = sokol.log;
 const app = @import("./App.zig");
 
 pub fn main(init: std.process.Init) void {
-    var debug_alloc = std.heap.DebugAllocator(.{
+    var debug_allocator = std.heap.DebugAllocator(.{
             // .never_unmap = true,
             // .safety = true,
         }){};
-    defer std.debug.assert(debug_alloc.deinit() == .ok);
+    const debug_alloc = debug_allocator.allocator();
+    defer std.debug.assert(debug_allocator.deinit() == .ok);
 
-    const alloc = switch (builtin.mode) {
-        .Debug => debug_alloc.allocator(),
-        else => init.gpa,
+    const alloc: *const std.mem.Allocator = switch (builtin.mode) {
+        .Debug => &debug_alloc,
+        else => &init.gpa,
     };
 
-    app.setAlloc(&alloc);
+    app.setAlloc(alloc);
 
     sapp.run(.{
         .init_cb = app.initCb,

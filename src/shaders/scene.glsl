@@ -35,4 +35,4 @@ void main() {
 }
 @end
 
-@program donut vs fs
+@program scene vs fs

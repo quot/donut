@@ -3,28 +3,62 @@ const math = @import("../utils/math.zig");
 
 const mesh = @import("mesh.zig");
 const MeshVertex = mesh.MeshVertex;
-// const MeshData = mesh.MeshData;
+const Vertex = mesh.Vertex;
+const Edge = mesh.Edge;
 
-pub fn triangleFromCenter(cent: math.Vec2, side_len: f32) [3]math.Vec2 {
-    const height: f32 = (std.math.sqrt(3.0) / 2.0) * side_len;
-    return .{
-        math.Vec2.new(cent.x, cent.y-(height/3*2)),
-        math.Vec2.new(cent.x-(side_len/2), cent.y+(height/3)),
-        math.Vec2.new(cent.x+(side_len/2), cent.y+(height/3)),
-    };
+const NGon = mesh.NGon;
+
+pub fn cubeEdges() [12]Edge {
+    const vert_0 = @Vector(3, f32){ -1.0, 1.0, 1.0 };
+    const vert_1 = @Vector(3, f32){ 1.0, 1.0, 1.0 };
+    const vert_2 = @Vector(3, f32){ -1.0, 1.0, -1.0 };
+    const vert_3 = @Vector(3, f32){ 1.0, 1.0, -1.0 };
+    const vert_4 = @Vector(3, f32){ -1.0, -1.0, 1.0 };
+    const vert_5 = @Vector(3, f32){ 1.0, -1.0, 1.0 };
+    const vert_6 = @Vector(3, f32){ -1.0, -1.0, -1.0 };
+    const vert_7 = @Vector(3, f32){ 1.0, -1.0, -1.0 };
+
+    //     1>+--------+<2
+    //      /|       /|
+    //     /        / |
+    //  3>+--------+<4|
+    //    |  |     |  |
+    //    |  +<5-  | -+<6
+    //    | /      | /
+    //    |        |/
+    //  7>+--------+<8
+
+    return NGon.new([8]Vertex{
+        vert_0,
+        vert_1,
+        vert_2,
+        vert_3,
+        vert_4,
+        vert_5,
+        vert_6,
+        vert_7,
+    }, [12]Edge{
+        .{ vert_0, vert_1 }, // 0 //            0
+        .{ vert_0, vert_2 }, // 1 //       +--------+
+        .{ vert_0, vert_4 }, // 2 //    1>/|     3>/|
+        .{ vert_1, vert_3 }, // 3 //     /    5   / |
+        .{ vert_1, vert_5 }, // 4 //    +--------+  |<4
+        .{ vert_3, vert_2 }, // 5 //    |  |<2   |  |
+        .{ vert_3, vert_7 }, // 6 //  7>|  +--   | -+
+        .{ vert_2, vert_6 }, // 7 //    | /  ^10 | /<11
+        .{ vert_6, vert_4 }, // 8 //    |/<8   6>|/
+        .{ vert_6, vert_7 }, // 9 //    +--------+
+        .{ vert_4, vert_5 }, // 10 //       9
+        .{ vert_5, vert_7 }, // 11
+    }, [6][4]u16{
+        .{ 0, 3, 5, 1 },
+        .{ 2, 0, 4, 10 },
+        .{ 7, 1, 2, 8 },
+        .{ 6, 3, 4, 11 },
+        .{ 8, 10, 6, 9 },
+        .{ 9, 7, 5, 6 },
+    });
 }
-
-// pub fn cube() []MeshVertex {
-//     const red: [4]f32 = .{ 1.0, 0.2, 0.2, 1.0 };
-//     const green: [4]f32 = .{ 0.2, 1.0, 0.2, 1.0 };
-//     const blue: [4]f32 = .{ 0.2, 0.3, 1.0, 1.0 };
-//     const yellow: [4]f32 = .{ 1.0, 0.85, 0.2, 1.0 };
-//     const gray: [4]f32 = .{ 0.65, 0.65, 0.7, 1.0 };
-
-//     return [_]MeshVertex{
-//         MeshVertex.new(, normal: [3]f32, texcoord: [2]f32, color: [4]f32)
-//     }
-// }
 
 pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };
@@ -84,10 +118,10 @@ pub fn pyramidVertices() [18]MeshVertex {
 
 pub fn pyramidIndices() [18]u16 {
     return [18]u16{
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 10, 11,
+        0,  1,  2,
+        3,  4,  5,
+        6,  7,  8,
+        9,  10, 11,
         12, 13, 14,
         15, 16, 17,
     };

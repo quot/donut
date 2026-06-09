@@ -11,7 +11,7 @@ pub const simgui = sokol.imgui;
 pub const sgimgui = sokol.gfximgui;
 pub const sappimgui = sokol.appimgui;
 
-// Donut
+// App
 const base_ui = @import("./base.zig");
 
 pub fn initUi() void {
