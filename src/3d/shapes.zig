@@ -68,6 +68,8 @@ pub fn cube(cube_mesh: *NGonMesh) void {
     cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[7]);
     cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[5]);
     cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[6]);
+
+    cube_mesh.*.buildMesh();
 }
 
 pub fn pyramidVertices() [18]MeshVertex {

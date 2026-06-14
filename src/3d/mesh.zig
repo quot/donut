@@ -47,7 +47,8 @@ pub const Edge = struct {
 
 const NGonFace = struct {
     alloc: *const std.mem.Allocator,
-    edges: std.ArrayList(*Edge) = undefined,
+    edge_refs: std.ArrayList(*Edge) = undefined,
+    edges: std.ArrayList(Edge) = undefined,
     triangles: std.ArrayList([3]*Vertex) = undefined,
     normal: ?@Vector(3, f32) = null,
     color: @Vector(4, f32) = .{ 0, 0, 0, 1 },
@@ -55,7 +56,8 @@ const NGonFace = struct {
     pub fn new(gpa: *const std.mem.Allocator, color: @Vector(4, f32)) NGonFace {
         return .{
             .alloc = gpa,
-            .edges =  .empty,
+            .edge_refs =  .empty,
+            .edges = .empty,
             .triangles = .empty,
             .color = color,
         };
@@ -67,15 +69,15 @@ const NGonFace = struct {
 
         log_str.print(self.alloc.*, "[{*}] Edges:", .{self}) catch unreachable;
 
-        for (0..self.*.edges.items.len) |index| {
+        for (0..self.*.edge_refs.items.len) |index| {
             log_str.print(self.alloc.*, "\nEdge [{d}]: [{d},{d},{d}]<->[{d},{d},{d}]", .{
                 index,
-                self.edges.items[index].*.vertices[0].*.position[0],
-                self.edges.items[index].*.vertices[0].*.position[1],
-                self.edges.items[index].*.vertices[0].*.position[2],
-                self.edges.items[index].*.vertices[1].*.position[0],
-                self.edges.items[index].*.vertices[1].*.position[1],
-                self.edges.items[index].*.vertices[1].*.position[2],
+                self.edge_refs.items[index].*.vertices[0].*.position[0],
+                self.edge_refs.items[index].*.vertices[0].*.position[1],
+                self.edge_refs.items[index].*.vertices[0].*.position[2],
+                self.edge_refs.items[index].*.vertices[1].*.position[0],
+                self.edge_refs.items[index].*.vertices[1].*.position[1],
+                self.edge_refs.items[index].*.vertices[1].*.position[2],
             }) catch unreachable;
         }
 
@@ -97,27 +99,33 @@ const NGonFace = struct {
         std.log.debug("{s}", .{log_str.items});
     }
 
-    pub fn sortEdges(self: *NGonFace) void {
-        for (0..self.edges.items.len - 1) |index| {
-            const next_vert = self.edges.items[index].*.vertices[1].*;
+    fn copyEdges(self: *NGonFace) void {
+        for (self.edge_refs.items) |cur_ref| {
+            self.edges.append(self.alloc.*, cur_ref.*) catch unreachable;
+        }
+    }
 
-            if (!next_vert.equals(self.edges.items[index + 1].*.vertices[0].*)) {
+    pub fn sortEdges(self: *NGonFace) void {
+        self.copyEdges();
+
+        for (0..self.edges.items.len - 1) |index| {
+            const next_vert = self.edges.items[index].vertices[1].*;
+
+            if (!next_vert.equals(self.edges.items[index + 1].vertices[0].*)) {
                 var swap_index = index + 1;
 
                 search_loop: for ((index + 1)..self.edges.items.len) |search_index| {
-                    if (next_vert.equals(self.edges.items[search_index].*.vertices[1].*)) {
-                        std.mem.swap(*Vertex, &self.edges.items[search_index].*.vertices[0], &self.edges.items[search_index].*.vertices[1]);
+                    if (next_vert.equals(self.edges.items[search_index].vertices[0].*)) {
                         swap_index = search_index;
                         break :search_loop;
-                    }
-
-                    if (next_vert.equals(self.edges.items[search_index].*.vertices[0].*)) {
+                    } else if (next_vert.equals(self.edges.items[search_index].vertices[1].*)) {
+                        std.mem.swap(*Vertex, &self.edges.items[search_index].vertices[0], &self.edges.items[search_index].vertices[1]);
                         swap_index = search_index;
                         break :search_loop;
                     }
                 }
                 if (swap_index != index + 1) {
-                    std.mem.swap(*Edge, &self.edges.items[index + 1], &self.edges.items[swap_index]);
+                    std.mem.swap(Edge, &self.edges.items[index + 1], &self.edges.items[swap_index]);
                 }
             }
         }
@@ -125,16 +133,16 @@ const NGonFace = struct {
 
     pub fn buildMesh(self: *NGonFace) void {
         std.log.debug("--- [{*}] buildMesh ------------", .{self});
-        self.triangles = .empty;
+        self.triangles.clearRetainingCapacity();
         self.sortEdges();
         var cur_triangle: [3]?*Vertex = .{null, null, null}; // Build array of triangles instead of flat vertex list.
 
         for (0..self.edges.items.len) |edge_ind| {
             if (edge_ind == 0) {
-                cur_triangle[0] = self.edges.items[edge_ind].*.vertices[0];
+                cur_triangle[0] = self.edges.items[edge_ind].vertices[0];
             }
 
-            const next_vert = self.edges.items[edge_ind].*.vertices[1];
+            const next_vert = self.edges.items[edge_ind].vertices[1];
 
             if (cur_triangle[1] == null) {
                 cur_triangle[1] = next_vert;
@@ -176,11 +184,11 @@ pub const NGonMesh = struct {
     pub fn new(alloc: *const std.mem.Allocator) NGonMesh {
         return .{
             .alloc = alloc,
-            .vertices = std.ArrayList(Vertex).empty,
-            .edges = std.ArrayList(Edge).empty,
-            .faces = std.ArrayList(NGonFace).empty,
-            .mesh_verts = std.ArrayList(MeshVertex).empty,
-            .mesh_indices = std.ArrayList(u16).empty,
+            .vertices = .empty,
+            .edges = .empty,
+            .faces = .empty,
+            .mesh_verts = .empty,
+            .mesh_indices = .empty,
         };
     }
 
@@ -202,7 +210,7 @@ pub const NGonMesh = struct {
     }
 
     pub fn addFaceEdge(self: *NGonMesh, face_ind: usize, edge: *Edge) void {
-        self.faces.items[face_ind].edges.append(self.alloc.*, edge) catch unreachable;
+        self.faces.items[face_ind].edge_refs.append(self.alloc.*, edge) catch unreachable;
         // std.log.debug("APPENDED FACE EDGE! - Array Length: {d}", .{self.faces.items[face_ind].edges.items.len});
     }
 
@@ -213,6 +221,10 @@ pub const NGonMesh = struct {
     }
 
     pub fn buildMesh(self: *NGonMesh) void {
+        // self.vertices = .empty;
+        self.mesh_verts.clearRetainingCapacity();
+        self.mesh_indices.clearRetainingCapacity();
+
         for (self.faces.items) |*cur_face| {
             cur_face.buildMesh();
 
@@ -223,23 +235,6 @@ pub const NGonMesh = struct {
                 }
                 if (self.mesh_verts.items.len % 3 != 0) { std.log.err("Mesh verts not divisible by 3!", .{}); }
             }
-            // for (cur_face.edges.items) |cur_edge| {
-            //     for (cur_edge.*.vertices) |cur_vert| {
-            //         if (self.mesh_verts.items.len == 0 or !self.mesh_verts.items[self.mesh_verts.items.len - 1].equalsPosition(cur_vert.*.position)) {
-            //             self.addMeshVert(MeshVertex.new(cur_vert.*.position, .{ 0.7, 0.7, 0.7 }, .{ 0, 0 }, cur_face.color));
-            //         }
-
-            //         if (@mod(self.mesh_verts.items.len, 3) == 0) {
-            //             self.addMeshVert(MeshVertex.new(cur_vert.*.position, .{ 0.7, 0.7, 0.7 }, .{ 0, 0 }, cur_face.color));
-            //         }
-            //     }
-            // }
-            // const overflow_verts = @mod(self.mesh_verts.items.len, 3);
-            // for (0..overflow_verts) |over_ind| {
-            //     std.log.debug("TOO MANY VERTS! Total Count: {d}, Overflow Count: {d}", .{ self.mesh_verts.items.len, (overflow_verts - over_ind) });
-            //     _ = self.mesh_verts.orderedRemove(self.mesh_verts.items.len - 1);
-            //     _ = self.mesh_indices.orderedRemove(self.mesh_indices.items.len - 1);
-            // }
         }
     }
 };
@@ -258,8 +253,3 @@ pub const MeshVertex = extern struct {
         return (self.*.position[0] == pos[0] and self.*.position[1] == pos[1] and self.*.position[2] == pos[2]);
     }
 };
-
-// pub const MeshData = struct {
-//     vertices: []const MeshVertex,
-//     indices: []const u16,
-// };

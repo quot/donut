@@ -50,7 +50,6 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
     // Test Cube Build
     cube = mesh.NGonMesh.new(gpa);
     shapes.cube(&cube);
-    cube.buildMesh();
 
     ///////////////
     // Mesh Setup

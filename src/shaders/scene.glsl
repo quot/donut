@@ -20,6 +20,7 @@ void main() {
     gl_Position = mvp * vec4(position, 1.0);
     frag_normal = mat3(model) * normal;
     frag_pos = position;
+    frag_color = color;
 }
 @end
 
