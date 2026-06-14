@@ -33,12 +33,24 @@ pub const Vec3 = extern struct {
     y: f32,
     z: f32,
 
+    pub fn fromVector(vec: @Vector(3, f32)) Vec3 {
+        return Vec3{ .x = vec[0], .y = vec[1], .z = vec[2] };
+    }
+
+    pub fn toArray(v: Vec3) [3]f32 {
+        return [3]f32{ v.x, v.y, v.z };
+    }
+
     pub fn zero() Vec3 {
         return Vec3{ .x = 0.0, .y = 0.0, .z = 0.0 };
     }
 
     pub fn new(x: f32, y: f32, z: f32) Vec3 {
         return Vec3{ .x = x, .y = y, .z = z };
+    }
+
+    pub fn equals(self: *const Vec3, v: Vec3) bool {
+        return (self.x == v.x and self.y == v.y and self.z == v.z);
     }
 
     pub fn up() Vec3 {

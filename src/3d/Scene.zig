@@ -39,9 +39,7 @@ const apex_max: f32 = 1.5;
 const apex_min: f32 = 0.5;
 
 // Cube
-var cube: mesh.NGon = undefined;
-var cube_mesh_verts: std.ArrayList(mesh.MeshVertex) = undefined;
-var cube_mesh_indices: std.ArrayList(u16) = undefined;
+var cube: mesh.NGonMesh = undefined;
 
 ///////////////
 
@@ -50,9 +48,27 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
 
     ////////////////////
     // Test Cube Build
-    cube = mesh.NGon.new(gpa);
-    cube_mesh_verts = std.ArrayList(mesh.MeshVertex).empty;
-    cube_mesh_indices = std.ArrayList(u16).empty;
+    cube = mesh.NGonMesh.new(gpa);
+
+    // cube.addVert(.{ .position = @Vector(3, f32){ -1, 1, 0 } });
+    // cube.addVert(.{ .position = @Vector(3, f32){ -1, -1, 0 } });
+    // cube.addVert(.{ .position = @Vector(3, f32){ 1, -1, 0 } });
+    // cube.addVert(.{ .position = @Vector(3, f32){ 1, 1, 0 } });
+
+    // cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[0], &cube.vertices.items[1] } });
+    // cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[1], &cube.vertices.items[2] } });
+    // cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[2], &cube.vertices.items[3] } });
+    // cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[3], &cube.vertices.items[0] } });
+
+    // const face_ind = cube.newFace(.{0,0,0,1});
+    // cube.addFaceEdge(face_ind, &cube.edges.items[0]);
+    // cube.addFaceEdge(face_ind, &cube.edges.items[1]);
+    // cube.addFaceEdge(face_ind, &cube.edges.items[2]);
+    // cube.addFaceEdge(face_ind, &cube.edges.items[3]);
+
+
+    ////////////////////////////////////////
+    ////////////////////////////////////////
 
     cube.addVert(.{ .position = @Vector(3, f32){ -1.0, 1.0, 1.0 } });
     cube.addVert(.{ .position = @Vector(3, f32){ 1.0, 1.0, 1.0 } });
@@ -76,7 +92,7 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
     cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[4], &cube.vertices.items[5] } });
     cube.addEdge(mesh.Edge{ .vertices = .{ &cube.vertices.items[5], &cube.vertices.items[7] } });
 
-    var face_ind = cube.newFace(.{0,0,0,1});
+    var face_ind = cube.newFace(mesh.colors[0]);
     // std.log.debug("FACE APPENDED! - Index: {d}", .{faceInd});
 
     cube.addFaceEdge(face_ind, &cube.edges.items[0]);
@@ -84,39 +100,37 @@ pub fn init(appGpa: *const std.mem.Allocator) void {
     cube.addFaceEdge(face_ind, &cube.edges.items[5]);
     cube.addFaceEdge(face_ind, &cube.edges.items[1]);
 
-    face_ind = cube.newFace(.{0,0,0,1});
+    face_ind = cube.newFace(mesh.colors[0+face_ind]);
     cube.addFaceEdge(face_ind, &cube.edges.items[2]);
     cube.addFaceEdge(face_ind, &cube.edges.items[0]);
     cube.addFaceEdge(face_ind, &cube.edges.items[4]);
     cube.addFaceEdge(face_ind, &cube.edges.items[10]);
 
-
-    face_ind = cube.newFace(.{0,0,0,1});
+    face_ind = cube.newFace(mesh.colors[0+face_ind]);
     cube.addFaceEdge(face_ind, &cube.edges.items[7]);
     cube.addFaceEdge(face_ind, &cube.edges.items[1]);
     cube.addFaceEdge(face_ind, &cube.edges.items[2]);
     cube.addFaceEdge(face_ind, &cube.edges.items[8]);
 
-    face_ind = cube.newFace(.{0,0,0,1});
+    face_ind = cube.newFace(mesh.colors[0+face_ind]);
     cube.addFaceEdge(face_ind, &cube.edges.items[6]);
     cube.addFaceEdge(face_ind, &cube.edges.items[3]);
     cube.addFaceEdge(face_ind, &cube.edges.items[4]);
     cube.addFaceEdge(face_ind, &cube.edges.items[11]);
 
-    face_ind = cube.newFace(.{0,0,0,1});
+    face_ind = cube.newFace(mesh.colors[0+face_ind]);
     cube.addFaceEdge(face_ind, &cube.edges.items[8]);
     cube.addFaceEdge(face_ind, &cube.edges.items[10]);
     cube.addFaceEdge(face_ind, &cube.edges.items[6]);
     cube.addFaceEdge(face_ind, &cube.edges.items[9]);
 
-    face_ind = cube.newFace(.{0,0,0,1});
+    face_ind = cube.newFace(mesh.colors[0+face_ind]);
     cube.addFaceEdge(face_ind, &cube.edges.items[9]);
     cube.addFaceEdge(face_ind, &cube.edges.items[7]);
     cube.addFaceEdge(face_ind, &cube.edges.items[5]);
     cube.addFaceEdge(face_ind, &cube.edges.items[6]);
 
     cube.buildMesh();
-
 
     ///////////////
     // Mesh Setup

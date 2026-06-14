@@ -6,59 +6,7 @@ const MeshVertex = mesh.MeshVertex;
 const Vertex = mesh.Vertex;
 const Edge = mesh.Edge;
 
-const NGon = mesh.NGon;
-
-pub fn cubeEdges() [12]Edge {
-    const vert_0 = @Vector(3, f32){ -1.0, 1.0, 1.0 };
-    const vert_1 = @Vector(3, f32){ 1.0, 1.0, 1.0 };
-    const vert_2 = @Vector(3, f32){ -1.0, 1.0, -1.0 };
-    const vert_3 = @Vector(3, f32){ 1.0, 1.0, -1.0 };
-    const vert_4 = @Vector(3, f32){ -1.0, -1.0, 1.0 };
-    const vert_5 = @Vector(3, f32){ 1.0, -1.0, 1.0 };
-    const vert_6 = @Vector(3, f32){ -1.0, -1.0, -1.0 };
-    const vert_7 = @Vector(3, f32){ 1.0, -1.0, -1.0 };
-
-    //     1>+--------+<2
-    //      /|       /|
-    //     /        / |
-    //  3>+--------+<4|
-    //    |  |     |  |
-    //    |  +<5-  | -+<6
-    //    | /      | /
-    //    |        |/
-    //  7>+--------+<8
-
-    return NGon.new([8]Vertex{
-        vert_0,
-        vert_1,
-        vert_2,
-        vert_3,
-        vert_4,
-        vert_5,
-        vert_6,
-        vert_7,
-    }, [12]Edge{
-        .{ vert_0, vert_1 }, // 0 //            0
-        .{ vert_0, vert_2 }, // 1 //       +--------+
-        .{ vert_0, vert_4 }, // 2 //    1>/|     3>/|
-        .{ vert_1, vert_3 }, // 3 //     /    5   / |
-        .{ vert_1, vert_5 }, // 4 //    +--------+  |<4
-        .{ vert_3, vert_2 }, // 5 //    |  |<2   |  |
-        .{ vert_3, vert_7 }, // 6 //  7>|  +--   | -+
-        .{ vert_2, vert_6 }, // 7 //    | /  ^10 | /<11
-        .{ vert_6, vert_4 }, // 8 //    |/<8   6>|/
-        .{ vert_6, vert_7 }, // 9 //    +--------+
-        .{ vert_4, vert_5 }, // 10 //       9
-        .{ vert_5, vert_7 }, // 11
-    }, [6][4]u16{
-        .{ 0, 3, 5, 1 },
-        .{ 2, 0, 4, 10 },
-        .{ 7, 1, 2, 8 },
-        .{ 6, 3, 4, 11 },
-        .{ 8, 10, 6, 9 },
-        .{ 9, 7, 5, 6 },
-    });
-}
+const NGonMesh = mesh.NGonMesh;
 
 pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };
