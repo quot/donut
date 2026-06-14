@@ -8,6 +8,68 @@ const Edge = mesh.Edge;
 
 const NGonMesh = mesh.NGonMesh;
 
+pub fn cube(cube_mesh: *NGonMesh) void {
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ -1.0, 1.0, 1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ 1.0, 1.0, 1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ -1.0, 1.0, -1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ 1.0, 1.0, -1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ -1.0, -1.0, 1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ 1.0, -1.0, 1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ -1.0, -1.0, -1.0 } });
+    cube_mesh.*.addVert(.{ .position = @Vector(3, f32){ 1.0, -1.0, -1.0 } });
+
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[0], &cube_mesh.*.vertices.items[1] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[0], &cube_mesh.*.vertices.items[2] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[0], &cube_mesh.*.vertices.items[4] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[1], &cube_mesh.*.vertices.items[3] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[1], &cube_mesh.*.vertices.items[5] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[3], &cube_mesh.*.vertices.items[2] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[3], &cube_mesh.*.vertices.items[7] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[2], &cube_mesh.*.vertices.items[6] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[6], &cube_mesh.*.vertices.items[4] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[6], &cube_mesh.*.vertices.items[7] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[4], &cube_mesh.*.vertices.items[5] } });
+    cube_mesh.*.addEdge(mesh.Edge{ .vertices = .{ &cube_mesh.*.vertices.items[5], &cube_mesh.*.vertices.items[7] } });
+
+    var face_ind = cube_mesh.*.newFace(mesh.colors[0]);
+    // std.log.debug("FACE APPENDED! - Index: {d}", .{faceInd});
+
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[0]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[3]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[5]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[1]);
+
+    face_ind = cube_mesh.*.newFace(mesh.colors[0+face_ind]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[2]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[0]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[4]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[10]);
+
+    face_ind = cube_mesh.*.newFace(mesh.colors[0+face_ind]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[7]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[1]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[2]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[8]);
+
+    face_ind = cube_mesh.*.newFace(mesh.colors[0+face_ind]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[6]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[3]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[4]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[11]);
+
+    face_ind = cube_mesh.*.newFace(mesh.colors[0+face_ind]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[8]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[10]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[6]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[9]);
+
+    face_ind = cube_mesh.*.newFace(mesh.colors[0+face_ind]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[9]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[7]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[5]);
+    cube_mesh.*.addFaceEdge(face_ind, &cube_mesh.*.edges.items[6]);
+}
+
 pub fn pyramidVertices() [18]MeshVertex {
     const apex: [3]f32 = .{ 0.0, 1.0, 0.0 };
     const front_left: [3]f32 = .{ -1.0, -1.0, 1.0 };
