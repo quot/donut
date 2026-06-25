@@ -160,10 +160,3 @@ pub fn drawFrame(fov: f32) void {
     sg.applyUniforms(@intCast(scene_shaders.sceneUniformBlockSlot("vs_params").?), sg.asRange(&vs_params));
     sg.draw(0, index_count, 1);
 }
-
-//////////////////////////////////
-// TESTING: Overlay frame update
-pub fn getApexPos() math.Vec3 {
-    return math.Vec3.new(mesh_vertices[apex_indices[0]].position[0], mesh_vertices[apex_indices[0]].position[1], mesh_vertices[apex_indices[0]].position[2]);
-}
-//////////////////////////////////

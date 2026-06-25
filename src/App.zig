@@ -40,7 +40,7 @@ pub export fn initCb() void {
 
     // Setup State Managers
     scene.init(gpa);
-    overlay.initOverlay();
+    overlay.initOverlay(gpa);
     gui.initUi();
 
     // Setup screen clearing
@@ -59,7 +59,8 @@ pub export fn frameCb() void {
 
     // Frame Updates
     scene.drawFrame(config.fov);
-    overlay.drawFrame(coords.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
+    // overlay.drawFrame(coords.worldToScreen(scene.getApexPos(), scene.mvp, math.Vec2.new(sapp.widthf(), sapp.heightf())));
+    overlay.drawFrame();
     gui.drawFrame();
 
     // Final Rendering

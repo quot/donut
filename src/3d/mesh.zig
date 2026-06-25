@@ -46,10 +46,13 @@ pub const Edge = struct {
 };
 
 const NGonFace = struct {
+    // FIX: Rework list of pointers. This could cause dangling pointers
+    //      if reference is reallocated.
+    //      Posible alternative: Store the item's index value instead.
     alloc: *const std.mem.Allocator,
-    edge_refs: std.ArrayList(*Edge) = undefined,
+    edge_refs: std.ArrayList(*Edge) = undefined, // <- FIX
     edges: std.ArrayList(Edge) = undefined,
-    triangles: std.ArrayList([3]*Vertex) = undefined,
+    triangles: std.ArrayList([3]*Vertex) = undefined, // <- FIX
     normal: ?@Vector(3, f32) = null,
     color: @Vector(4, f32) = .{ 0, 0, 0, 1 },
 
